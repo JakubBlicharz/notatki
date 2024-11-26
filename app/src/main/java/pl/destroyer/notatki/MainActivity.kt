@@ -1,17 +1,40 @@
 package pl.destroyer.notatki
 
 import android.os.Bundle
+
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.foundation.background
+
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import com.google.accompanist.flowlayout.FlowRow
+
 import androidx.compose.foundation.layout.padding
+
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.graphics.Color
+
+import androidx.compose.ui.unit.dp
+
 import pl.destroyer.notatki.ui.theme.NotatkiTheme
+
+
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -19,29 +42,101 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             NotatkiTheme {
-                Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    Greeting(
-                        name = "Android",
-                        modifier = Modifier.padding(innerPadding)
-                    )
+                Column(
+
+                ) {
+                    Naglowek()
+
+                    Notatki()
+                }
+
+
+
+            }
+        }
+    }
+}
+
+
+@Composable
+fun Naglowek(
+){
+    Box(
+        contentAlignment = Alignment.Center,
+        modifier = Modifier
+            .background(color = Color.Cyan)
+            .fillMaxWidth()
+            .height(60.dp)
+    ) {
+        Text(text = "Witaj w notatniku!")
+    }
+}
+
+
+
+@Composable
+fun Notatki() {
+    val notatki = remember { mutableStateOf(emptyList<String>()) }
+
+    Scaffold(
+        modifier = Modifier.fillMaxSize(),
+        floatingActionButton = {
+            DodajNotatke {
+                val nowaLista = notatki.value + "Nowa notatka"
+                notatki.value = nowaLista
+            }
+        },
+        floatingActionButtonPosition = androidx.compose.material3.FabPosition.Center
+    ) { padding ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(Color.Gray)
+                .padding(padding)
+                .verticalScroll(rememberScrollState())
+                .padding(start = 20.dp, end = 20.dp)
+
+        ) {
+            FlowRow(
+                modifier = Modifier
+                    .fillMaxWidth(),
+                mainAxisSpacing = 10.dp,
+                crossAxisSpacing = 10.dp
+            ) {
+                for (notatka in notatki.value) {
+                    Notatka(text = notatka)
                 }
             }
         }
     }
 }
 
+
+
+
 @Composable
-fun Greeting(name: String, modifier: Modifier = Modifier) {
-    Text(
-        text = "Hello $name!",
-        modifier = modifier
-    )
+fun Notatka(text: String) {
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(100.dp)
+            .background(color = Color.Red)
+            .padding(8.dp)
+    ) {
+        Text(text = text, color = Color.White)
+    }
 }
 
-@Preview(showBackground = true)
+
+
 @Composable
-fun GreetingPreview() {
-    NotatkiTheme {
-        Greeting("Android")
+fun DodajNotatke(onClick: () -> Unit){
+    FloatingActionButton(
+        onClick = onClick,
+        modifier = Modifier
+
+
+    ) {
+        Text("+")
     }
 }
