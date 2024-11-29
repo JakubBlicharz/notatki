@@ -1,9 +1,7 @@
 package pl.destroyer.notatki.ekran
 
-import androidx.compose.animation.core.copy
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -30,9 +28,7 @@ import pl.destroyer.notatki.data.AppDatabase
 import pl.destroyer.notatki.komponenty.NoteDetails
 import pl.destroyer.notatki.komponenty.NoteListScreen
 
-import kotlin.collections.addAll
-import kotlin.collections.remove
-import kotlin.text.clear
+
 
 @Composable
 fun NotesScreen(database: AppDatabase) {
@@ -61,14 +57,7 @@ fun NotesScreen(database: AppDatabase) {
                 onAddNote = {
                     scope.launch {
                         scope.launch(Dispatchers.IO) {
-                            try {
-                                val newNote = Note(
-                                    title = "Nowa notatka",
-                                    content = ""
-                                )
-                                val id = database.noteDao().insertNote(newNote)
-                            } catch (e: Exception) {
-                            }
+
                         }
                     }
                 },
