@@ -57,7 +57,14 @@ fun NotesScreen(database: AppDatabase) {
                 onAddNote = {
                     scope.launch {
                         scope.launch(Dispatchers.IO) {
-
+                            try {
+                                val newNote = Note(
+                                    title = "Nowa notatka",
+                                    content = ""
+                                )
+                                val id = database.noteDao().insertNote(newNote)
+                            } catch (e: Exception) {
+                            }
                         }
                     }
                 },
