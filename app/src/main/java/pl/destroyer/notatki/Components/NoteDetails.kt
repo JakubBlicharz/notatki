@@ -1,4 +1,4 @@
-package pl.destroyer.notatki.komponenty
+package pl.destroyer.notatki.Components
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -51,7 +51,7 @@ fun NoteDetails(note: Note, onSave: (String, String) -> Unit) {
         Button(
             onClick = { onSave(title.value, content.value) },
             colors = ButtonDefaults.buttonColors(
-                containerColor = Color(0xFF1e2f6b),
+                containerColor = Color(0xFF452971),
                 contentColor = Color.White
             ),
             modifier = Modifier.align(Alignment.End)

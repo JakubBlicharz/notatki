@@ -1,5 +1,4 @@
-package pl.destroyer.notatki.ekran
-
+package pl.destroyer.notatki.Screen
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
@@ -25,8 +24,8 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import pl.destroyer.notatki.dane.Note
 import pl.destroyer.notatki.data.AppDatabase
-import pl.destroyer.notatki.komponenty.NoteDetails
-import pl.destroyer.notatki.komponenty.NoteListScreen
+import pl.destroyer.notatki.Components.NoteDetails
+import pl.destroyer.notatki.Components.NoteListScreen
 
 
 
@@ -87,7 +86,7 @@ fun NotesScreen(database: AppDatabase) {
             Box(
                 modifier = Modifier
                     .fillMaxSize()
-                    .background(Color(0xFF1a1b1c))
+                    .background(Color(0xFFAB81CD))
             )
             if (noteId != null) {
                 val note = notatki.find { it.id == noteId }
@@ -126,7 +125,7 @@ fun Naglowek() {
     Box(
         contentAlignment = Alignment.Center,
         modifier = Modifier
-            .background(color = Color(0xFF686869))
+            .background(color = Color(0xFF222A68))
             .fillMaxWidth()
             .height(80.dp)
             .statusBarsPadding()

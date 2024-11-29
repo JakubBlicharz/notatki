@@ -1,4 +1,4 @@
-package pl.destroyer.notatki.komponenty
+package pl.destroyer.notatki.Components
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -40,7 +40,7 @@ fun NoteListScreen(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.Center
                 ) {
-                    FloatingActionButton(onClick = onAddNote, Modifier.size(75.dp)) {
+                    FloatingActionButton(onClick = onAddNote, containerColor = Color(0xFF452971) , modifier = Modifier .size(75.dp)) {
                         Text("+", fontSize = 30.sp)
                     }
                 }

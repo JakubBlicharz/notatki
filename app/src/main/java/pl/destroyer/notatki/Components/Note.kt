@@ -1,4 +1,4 @@
-package pl.destroyer.notatki.komponenty
+package pl.destroyer.notatki.Components
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -28,7 +28,7 @@ fun Note(note: Note, onClick: () -> Unit, onDelete: () -> Unit) {
             .fillMaxWidth()
             .wrapContentHeight()
             .clip(RoundedCornerShape(16.dp))
-            .background(color = Color(0xFF9eaee8))
+            .background(color = Color(0xFF574AE2))
             .clickable(onClick = onClick)
     ) {
         Column(modifier = Modifier
@@ -37,13 +37,14 @@ fun Note(note: Note, onClick: () -> Unit, onDelete: () -> Unit) {
             Text(text = note.title, color = Color.White)
             Text(
                 text = note.content.take(25) + if (note.content.length > 25) "..." else "",
+                maxLines = 1,
                 color = Color.White
             )
             Button(
                 onClick = onDelete,
                 modifier = Modifier.align(Alignment.End),
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = Color(0xFF1e2f6b),
+                    containerColor = Color(0xFF452971),
                     contentColor = Color.White
 
                 )
