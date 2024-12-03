@@ -41,7 +41,7 @@ android {
         compose = true
     }
     composeOptions {
-        kotlinCompilerExtensionVersion = "1.5.1"
+        kotlinCompilerExtensionVersion = "1.5.0"
     }
     packaging {
         resources {
@@ -69,15 +69,17 @@ dependencies {
     androidTestImplementation(libs.androidx.espresso.core)
     androidTestImplementation(platform(libs.androidx.compose.bom))
     androidTestImplementation(libs.androidx.ui.test.junit4)
-    implementation("com.google.accompanist:accompanist-systemuicontroller:0.28.0")
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
     implementation ("androidx.navigation:navigation-compose:2.6.0")
     implementation("androidx.room:room-runtime:2.5.0")
     implementation("androidx.room:room-ktx:2.5.0")
     kapt("androidx.room:room-compiler:2.5.0")
-
-
-
-
+    implementation("androidx.compose.material3:material3:1.1.0-alpha08")
+    implementation("com.google.accompanist:accompanist-swiperefresh:0.30.1")
+    implementation("androidx.compose.ui:ui:1.3.0")
+    implementation("androidx.compose.foundation:foundation:1.5.0")
+    implementation("androidx.compose.material:material:1.5.0")
+    implementation("com.google.accompanist:accompanist-systemuicontroller:0.30.1")
+    implementation("com.google.accompanist:accompanist-navigation-animation:0.30.1")
 }
