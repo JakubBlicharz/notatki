@@ -26,6 +26,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.launch
 import pl.destroyer.notatki.dane.Note
+import kotlin.math.abs
+
 
 
 @OptIn(ExperimentalFoundationApi::class, ExperimentalAnimationApi::class)
@@ -38,12 +40,8 @@ fun NoteListScreen(
 ) {
     val lazyListState = rememberLazyListState()
     val coroutineScope = rememberCoroutineScope()
-    var draggedIndex by remember { mutableStateOf<Int?>(null) }
-    var initialDragIndex by remember { mutableStateOf<Int?>(null) }
-
-    val displayedNotes by remember {
-        derivedStateOf { notatki.toList() }
-    }
+    var draggedNoteId by remember { mutableStateOf<Int?>(null) }
+    var offsetY by remember { mutableStateOf(0f) }
 
     val PurpleColor = Color(0xFF452971)
 
@@ -81,55 +79,54 @@ fun NoteListScreen(
             contentPadding = PaddingValues(vertical = 8.dp)
         ) {
             itemsIndexed(
-                items = displayedNotes,
+                items = notatki,
                 key = { _, item -> item.id }
             ) { index, note ->
                 val elevation by animateFloatAsState(
-                    targetValue = if (draggedIndex == index) 8.dp.value else 0.dp.value
+                    targetValue = if (draggedNoteId == note.id) 8.dp.value else 0.dp.value
                 )
-
-                var offsetY by remember { mutableStateOf(0f) }
 
                 AnimatedVisibility(visible = true, enter = fadeIn(), exit = fadeOut()) {
                     Box(
                         modifier = Modifier
                             .graphicsLayer {
                                 shadowElevation = elevation
-                                translationY = offsetY
+                                translationY = if (draggedNoteId == note.id) offsetY else 0f
                             }
                             .padding(vertical = 8.dp)
-                            .animateItemPlacement()
                             .pointerInput(Unit) {
                                 detectDragGesturesAfterLongPress(
-                                    onDragStart = { offset ->
-                                        val startIndex = lazyListState.layoutInfo.visibleItemsInfo
-                                            .find { it.offset <= offset.y && offset.y <= it.offset + it.size }
-                                            ?.index
-                                        draggedIndex = startIndex
-                                        initialDragIndex = startIndex
+                                    onDragStart = {
+                                        draggedNoteId = note.id
                                     },
                                     onDrag = { change, dragAmount ->
                                         change.consume()
                                         offsetY += dragAmount.y
 
-                                        val targetItemIndex = calculateTargetIndex(lazyListState, offsetY)
-
-                                        if (targetItemIndex != draggedIndex && targetItemIndex in displayedNotes.indices) {
-                                            coroutineScope.launch {
-                                                val noteToMove = notatki.removeAt(draggedIndex!!)
-                                                notatki.add(targetItemIndex, noteToMove)
-                                                draggedIndex = targetItemIndex
+                                        if (draggedNoteId != null) {
+                                            val draggedIndex = notatki.indexOfFirst { it.id == draggedNoteId }
+                                            if (draggedIndex != -1) {
+                                                val targetIndex = calculateDynamicTargetIndex(
+                                                    lazyListState,
+                                                    draggedIndex,
+                                                    offsetY,
+                                                    notatki
+                                                )
+                                                if (targetIndex != draggedIndex) {
+                                                    coroutineScope.launch {
+                                                        val noteToMove = notatki.removeAt(draggedIndex)
+                                                        notatki.add(targetIndex, noteToMove)
+                                                    }
+                                                }
                                             }
                                         }
                                     },
                                     onDragEnd = {
-                                        draggedIndex = null
-                                        initialDragIndex = null
+                                        draggedNoteId = null
                                         offsetY = 0f
                                     },
                                     onDragCancel = {
-                                        draggedIndex = null
-                                        initialDragIndex = null
+                                        draggedNoteId = null
                                         offsetY = 0f
                                     }
                                 )
@@ -147,36 +144,28 @@ fun NoteListScreen(
     }
 }
 
-private fun <T> MutableList<T>.swap(index1: Int, index2: Int) {
-    if (index1 != index2 && index1 in indices && index2 in indices) {
-        val temp = this[index1]
-        this[index1] = this[index2]
-        this[index2] = temp
-    }
-}
-
-private fun calculateTargetIndex(
+private fun calculateDynamicTargetIndex(
     lazyListState: LazyListState,
-    dragAmount: Float,
+    draggedIndex: Int,
+    dragOffsetY: Float,
+    notes: List<Note>
 ): Int {
     val visibleItems = lazyListState.layoutInfo.visibleItemsInfo
-    if (visibleItems.isEmpty()) {
-        return 0
-    }
+    if (visibleItems.isEmpty() || draggedIndex !in notes.indices) return draggedIndex
 
-    val draggedItemHeight = visibleItems[0].size
-    val targetOffset = lazyListState.firstVisibleItemScrollOffset + dragAmount
+    val draggedItem = visibleItems.find { it.index == draggedIndex } ?: return draggedIndex
+    val draggedItemCenter = draggedItem.offset + draggedItem.size / 2 + dragOffsetY.toInt()
 
+    val closestItem = visibleItems.minByOrNull { item ->
+        val itemCenter = item.offset + item.size / 2
+        abs(draggedItemCenter - itemCenter)
+    } ?: return draggedIndex
 
-    val targetIndex = visibleItems.indexOfFirst {
-        val itemOffset = it.offset
-        val itemHeight = it.size
-        (targetOffset.toInt() + draggedItemHeight / 2) in (itemOffset - draggedItemHeight / 8)..(itemOffset + itemHeight + draggedItemHeight / 8)
-    }
+    val targetIndex = closestItem.index
 
-    return if (targetIndex == -1) {
-        lazyListState.firstVisibleItemIndex
+    return if (targetIndex != draggedIndex && targetIndex in notes.indices) {
+        targetIndex
     } else {
-        lazyListState.firstVisibleItemIndex + targetIndex
+        draggedIndex
     }
 }

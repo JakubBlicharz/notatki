@@ -82,4 +82,6 @@ dependencies {
     implementation("androidx.compose.material:material:1.5.0")
     implementation("com.google.accompanist:accompanist-systemuicontroller:0.30.1")
     implementation("com.google.accompanist:accompanist-navigation-animation:0.30.1")
+
+    annotationProcessor("androidx.room:room-compiler:2.5.0")
 }
