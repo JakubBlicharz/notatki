@@ -42,7 +42,7 @@ fun NoteListScreen(
     val coroutineScope = rememberCoroutineScope()
     var draggedNoteId by remember { mutableStateOf<Int?>(null) }
     var offsetY by remember { mutableStateOf(0f) }
-
+    var isDragging by remember { mutableStateOf(false) }
     val PurpleColor = Color(0xFF452971)
 
     Scaffold(
@@ -92,12 +92,15 @@ fun NoteListScreen(
                             .graphicsLayer {
                                 shadowElevation = elevation
                                 translationY = if (draggedNoteId == note.id) offsetY else 0f
+                                scaleX = if (isDragging && draggedNoteId == note.id) 0.9f else 1f // Dodano skalowanie
+                                scaleY = if (isDragging && draggedNoteId == note.id) 0.9f else 1f // Dodano skalowanie
                             }
                             .padding(vertical = 8.dp)
                             .pointerInput(Unit) {
                                 detectDragGesturesAfterLongPress(
                                     onDragStart = {
                                         draggedNoteId = note.id
+                                        isDragging = true
                                     },
                                     onDrag = { change, dragAmount ->
                                         change.consume()
@@ -124,11 +127,13 @@ fun NoteListScreen(
                                     onDragEnd = {
                                         draggedNoteId = null
                                         offsetY = 0f
+                                        isDragging = false
                                     },
                                     onDragCancel = {
                                         draggedNoteId = null
                                         offsetY = 0f
-                                    }
+                                        isDragging = false 
+                                    },
                                 )
                             }
                     ) {
