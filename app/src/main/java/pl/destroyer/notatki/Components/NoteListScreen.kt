@@ -92,8 +92,8 @@ fun NoteListScreen(
                             .graphicsLayer {
                                 shadowElevation = elevation
                                 translationY = if (draggedNoteId == note.id) offsetY else 0f
-                                scaleX = if (isDragging && draggedNoteId == note.id) 0.9f else 1f // Dodano skalowanie
-                                scaleY = if (isDragging && draggedNoteId == note.id) 0.9f else 1f // Dodano skalowanie
+                                scaleX = if (isDragging && draggedNoteId == note.id) 0.9f else 1f
+                                scaleY = if (isDragging && draggedNoteId == note.id) 0.9f else 1f
                             }
                             .padding(vertical = 8.dp)
                             .pointerInput(Unit) {
