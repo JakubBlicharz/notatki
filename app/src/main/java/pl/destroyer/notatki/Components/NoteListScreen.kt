@@ -141,6 +141,7 @@ fun NoteListScreen(
                 }
             }
         }
+
     }
 }
 
@@ -162,10 +163,14 @@ private fun calculateDynamicTargetIndex(
     } ?: return draggedIndex
 
     val targetIndex = closestItem.index
+    val distanceThreshold = draggedItem.size / 4
 
-    return if (targetIndex != draggedIndex && targetIndex in notes.indices) {
+    return if (targetIndex != draggedIndex && targetIndex in notes.indices &&
+        abs(draggedItemCenter - (closestItem.offset + closestItem.size / 2)) > distanceThreshold
+    ) {
         targetIndex
     } else {
         draggedIndex
     }
 }
+
