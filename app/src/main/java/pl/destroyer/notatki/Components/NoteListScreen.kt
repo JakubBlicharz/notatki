@@ -24,6 +24,7 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import pl.destroyer.notatki.dane.Note
 import kotlin.math.abs
@@ -43,6 +44,7 @@ fun NoteListScreen(
     var draggedNoteId by remember { mutableStateOf<Int?>(null) }
     var offsetY by remember { mutableStateOf(0f) }
     var isDragging by remember { mutableStateOf(false) }
+    var targetIndex by remember { mutableStateOf<Int?>(null) }
     val PurpleColor = Color(0xFF452971)
 
     Scaffold(
@@ -107,43 +109,51 @@ fun NoteListScreen(
                                         offsetY += dragAmount.y
 
                                         if (draggedNoteId != null) {
-                                            val draggedIndex = notatki.indexOfFirst { it.id == draggedNoteId }
+                                            val draggedIndex =
+                                                notatki.indexOfFirst { it.id == draggedNoteId }
                                             if (draggedIndex != -1) {
-                                                val targetIndex = calculateDynamicTargetIndex(
-                                                    lazyListState,
-                                                    draggedIndex,
-                                                    offsetY,
-                                                    notatki
-                                                )
-                                                if (targetIndex != draggedIndex) {
+                                                val targetIndexCalculated =
+                                                    calculateDynamicTargetIndex(
+                                                        lazyListState,
+                                                        draggedIndex,
+                                                        offsetY,
+                                                        notatki
+                                                    )
+                                                if (targetIndex != targetIndexCalculated) {
+                                                    targetIndex = targetIndexCalculated
                                                     coroutineScope.launch {
-                                                        val noteToMove = notatki.removeAt(draggedIndex)
-                                                        notatki.add(targetIndex, noteToMove)
+                                                        delay(500) 
+                                                        if (targetIndex != null && targetIndex != draggedIndex) {
+                                                            val noteToMove =
+                                                                notatki.removeAt(draggedIndex)
+                                                            notatki.add(targetIndex!!, noteToMove)}
+                                                        }
                                                     }
                                                 }
                                             }
-                                        }
-                                    },
-                                    onDragEnd = {
-                                        draggedNoteId = null
-                                        offsetY = 0f
-                                        isDragging = false
-                                    },
-                                    onDragCancel = {
-                                        draggedNoteId = null
-                                        offsetY = 0f
-                                        isDragging = false 
-                                    },
-                                )
+                                        },
+                                        onDragEnd = {
+                                            draggedNoteId = null
+                                            offsetY = 0f
+                                            isDragging = false
+                                            targetIndex = null
+                                        },
+                                        onDragCancel = {
+                                            draggedNoteId = null
+                                            offsetY = 0f
+                                            isDragging = false
+                                            targetIndex = null
+                                        },
+                                        )
+                                    }
+                                ) {
+                                    Note(
+                                        note = note,
+                                        onClick = { onNoteClick(note.id) },
+                                        onDelete = { onDeleteNote(note) }
+                                    )
+                                }
                             }
-                    ) {
-                        Note(
-                            note = note,
-                            onClick = { onNoteClick(note.id) },
-                            onDelete = { onDeleteNote(note) }
-                        )
-                    }
-                }
             }
         }
 
@@ -154,7 +164,7 @@ private fun calculateDynamicTargetIndex(
     lazyListState: LazyListState,
     draggedIndex: Int,
     dragOffsetY: Float,
-    notes: List<Note>
+    notes: List<Note>,
 ): Int {
     val visibleItems = lazyListState.layoutInfo.visibleItemsInfo
     if (visibleItems.isEmpty() || draggedIndex !in notes.indices) return draggedIndex
@@ -168,7 +178,7 @@ private fun calculateDynamicTargetIndex(
     } ?: return draggedIndex
 
     val targetIndex = closestItem.index
-    val distanceThreshold = draggedItem.size / 4
+    val distanceThreshold = draggedItem.size / 8
 
     return if (targetIndex != draggedIndex && targetIndex in notes.indices &&
         abs(draggedItemCenter - (closestItem.offset + closestItem.size / 2)) > distanceThreshold
