@@ -113,7 +113,6 @@ fun NotesScreen(database: AppDatabase) {
                                 database.noteDao().updateNote(note)
                             }
                         }
-                        // Synchronizacja UI na głównym wątku
                         withContext(Dispatchers.Main) {
                             notatki.sortBy { it.order }
                             noteOrder = newOrder
