@@ -98,6 +98,7 @@ fun NoteListScreen(
                                 scaleY = if (isDragging && draggedNoteId == note.id) 0.9f else 1f
                             }
                             .padding(vertical = 8.dp)
+                            .animateItemPlacement()
                             .pointerInput(Unit) {
                                 detectDragGesturesAfterLongPress(
                                     onDragStart = {
@@ -122,7 +123,7 @@ fun NoteListScreen(
                                                 if (targetIndex != targetIndexCalculated) {
                                                     targetIndex = targetIndexCalculated
                                                     coroutineScope.launch {
-                                                        delay(500) 
+                                                        delay(200)
                                                         if (targetIndex != null && targetIndex != draggedIndex) {
                                                             val noteToMove =
                                                                 notatki.removeAt(draggedIndex)
@@ -175,7 +176,12 @@ private fun calculateDynamicTargetIndex(
     val closestItem = visibleItems.minByOrNull { item ->
         val itemCenter = item.offset + item.size / 2
         abs(draggedItemCenter - itemCenter)
-    } ?: return draggedIndex
+    }
+
+
+    if (closestItem == null) {
+        return if (dragOffsetY > 0) notes.lastIndex else 0
+    }
 
     val targetIndex = closestItem.index
     val distanceThreshold = draggedItem.size / 8
@@ -188,4 +194,3 @@ private fun calculateDynamicTargetIndex(
         draggedIndex
     }
 }
-
