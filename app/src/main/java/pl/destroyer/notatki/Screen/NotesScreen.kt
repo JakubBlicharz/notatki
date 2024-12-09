@@ -8,9 +8,13 @@ import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -20,6 +24,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import pl.destroyer.notatki.dane.Note
@@ -34,12 +39,14 @@ fun NotesScreen(database: AppDatabase) {
     val navController = rememberNavController()
     val notatki = remember { mutableStateListOf<Note>() }
     val scope = rememberCoroutineScope()
+    var noteOrder by rememberSaveable { mutableStateOf<List<Int>>(emptyList()) }
 
     LaunchedEffect(Unit) {
         try {
-            database.noteDao().getAllNotes().collect { savedNotes ->
+            database.noteDao().getAllNotesOrdered().collect { savedNotes: List<Note> ->
                 notatki.clear()
                 notatki.addAll(savedNotes)
+                noteOrder = savedNotes.map { it.id }
             }
         } catch (e: Exception) {
             e.printStackTrace()
@@ -54,31 +61,68 @@ fun NotesScreen(database: AppDatabase) {
                     navController.navigate("noteDetail/$noteId")
                 },
                 onAddNote = {
+                    println("Przycisk dodania notatki kliknięty")
                     scope.launch {
+                        println("Rozpoczynam dodawanie nowej notatki...")
                         scope.launch(Dispatchers.IO) {
                             try {
+                                val maxOrder = database.noteDao().getAllNotesOrdered()
+                                    .firstOrNull()?.maxByOrNull { it.order }?.order ?: 0
+
                                 val newNote = Note(
                                     title = "Nowa notatka",
-                                    content = ""
+                                    content = "",
+                                    order = maxOrder + 1
                                 )
+
                                 val id = database.noteDao().insertNote(newNote)
+                                println("Nowa notatka dodana z ID: $id")
+
+                                withContext(Dispatchers.Main) {
+                                    notatki.add(newNote.copy(id = id.toInt()))
+                                    noteOrder = noteOrder + id.toInt()
+                                    println("Nowa notatka została dodana do UI")
+                                }
                             } catch (e: Exception) {
+                                e.printStackTrace()
+                                println("Błąd przy dodawaniu notatki: ${e.message}")
                             }
                         }
                     }
-                },
+                }
+                ,
                 onDeleteNote = { note ->
                     scope.launch {
                         scope.launch(Dispatchers.IO) {
                             try {
                                 database.noteDao().deleteNote(note)
                                 notatki.remove(note)
+                                noteOrder = noteOrder.filter { it != note.id }
                             } catch (e: Exception) {
                                 e.printStackTrace()
                             }
                         }
                     }
+                },
+                onNoteReorder = { newOrder ->
+                    scope.launch(Dispatchers.IO) {
+                        newOrder.forEachIndexed { index, noteId ->
+                            val note = notatki.find { it.id == noteId }
+                            if (note != null) {
+                                note.order = index
+                                database.noteDao().updateNote(note)
+                            }
+                        }
+                        // Synchronizacja UI na głównym wątku
+                        withContext(Dispatchers.Main) {
+                            notatki.sortBy { it.order }
+                            noteOrder = newOrder
+                        }
+                    }
+                    println("Zapisano nową kolejność w bazie: $newOrder")
                 }
+                ,
+                noteOrder = noteOrder
             )
         }
         composable("noteDetail/{noteId}") { backStackEntry ->

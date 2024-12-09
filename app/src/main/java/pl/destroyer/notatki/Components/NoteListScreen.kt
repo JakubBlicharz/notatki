@@ -38,6 +38,8 @@ fun NoteListScreen(
     onNoteClick: (Int) -> Unit,
     onAddNote: () -> Unit,
     onDeleteNote: (Note) -> Unit,
+    onNoteReorder: (List<Int>) -> Unit,
+    noteOrder: List<Int>
 ) {
     val lazyListState = rememberLazyListState()
     val coroutineScope = rememberCoroutineScope()
@@ -82,7 +84,7 @@ fun NoteListScreen(
         ) {
             itemsIndexed(
                 items = notatki,
-                key = { _, item -> item.id }
+                key = { _, note -> note.id }
             ) { index, note ->
                 val elevation by animateFloatAsState(
                     targetValue = if (draggedNoteId == note.id) 8.dp.value else 0.dp.value
@@ -98,7 +100,6 @@ fun NoteListScreen(
                                 scaleY = if (isDragging && draggedNoteId == note.id) 0.9f else 1f
                             }
                             .padding(vertical = 8.dp)
-                            .animateItemPlacement()
                             .pointerInput(Unit) {
                                 detectDragGesturesAfterLongPress(
                                     onDragStart = {
@@ -109,57 +110,61 @@ fun NoteListScreen(
                                         change.consume()
                                         offsetY += dragAmount.y
 
-                                        if (draggedNoteId != null) {
-                                            val draggedIndex =
-                                                notatki.indexOfFirst { it.id == draggedNoteId }
-                                            if (draggedIndex != -1) {
-                                                val targetIndexCalculated =
-                                                    calculateDynamicTargetIndex(
-                                                        lazyListState,
-                                                        draggedIndex,
-                                                        offsetY,
-                                                        notatki
-                                                    )
-                                                if (targetIndex != targetIndexCalculated) {
-                                                    targetIndex = targetIndexCalculated
-                                                    coroutineScope.launch {
-                                                        delay(200)
-                                                        if (targetIndex != null && targetIndex != draggedIndex) {
-                                                            val noteToMove =
-                                                                notatki.removeAt(draggedIndex)
-                                                            notatki.add(targetIndex!!, noteToMove)}
-                                                        }
-                                                    }
+                                        val draggedIndex = notatki.indexOfFirst { it.id == draggedNoteId }
+                                        val targetIndexCalculated = calculateDynamicTargetIndex(
+                                            lazyListState, draggedIndex, offsetY, notatki
+                                        )
+
+                                        if (targetIndex != targetIndexCalculated) {
+                                            targetIndex = targetIndexCalculated
+
+                                            coroutineScope.launch {
+                                                delay(200)
+                                                if (targetIndex != null && targetIndex != draggedIndex) {
+                                                    val newList = notatki.toMutableList()
+                                                    val noteToMove = newList.removeAt(draggedIndex)
+                                                    newList.add(targetIndex!!, noteToMove)
+
+
+                                                    newList.forEachIndexed { i, n -> n.order = i }
+                                                    notatki.clear()
+                                                    notatki.addAll(newList)
+                                                    onNoteReorder(newList.map { it.id })
+
+                                                    println("Nowa lista: ${newList.map { it.title }}")
                                                 }
                                             }
-                                        },
-                                        onDragEnd = {
-                                            draggedNoteId = null
-                                            offsetY = 0f
-                                            isDragging = false
-                                            targetIndex = null
-                                        },
-                                        onDragCancel = {
-                                            draggedNoteId = null
-                                            offsetY = 0f
-                                            isDragging = false
-                                            targetIndex = null
-                                        },
-                                        )
+                                        }
+                                    },
+                                    onDragEnd = {
+                                        draggedNoteId = null
+                                        offsetY = 0f
+                                        isDragging = false
+                                        targetIndex = null
+                                    },
+                                    onDragCancel = {
+                                        draggedNoteId = null
+                                        offsetY = 0f
+                                        isDragging = false
+                                        targetIndex = null
                                     }
-                                ) {
-                                    Note(
-                                        note = note,
-                                        onClick = { onNoteClick(note.id) },
-                                        onDelete = { onDeleteNote(note) }
-                                    )
-                                }
+                                )
                             }
+                    ) {
+                        Note(
+                            note = note,
+                            onClick = { onNoteClick(note.id) },
+                            onDelete = { onDeleteNote(note) }
+                        )
+                    }
+                }
             }
+
+        }
         }
 
     }
-}
+
 
 private fun calculateDynamicTargetIndex(
     lazyListState: LazyListState,

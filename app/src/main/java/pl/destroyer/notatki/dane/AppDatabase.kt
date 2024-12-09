@@ -6,7 +6,7 @@ import pl.destroyer.notatki.dane.Note
 import pl.destroyer.notatki.dane.NoteDao
 
 
-@Database(entities = [Note::class], version = 1)
+@Database(entities = [Note::class], version = 2,exportSchema = true)
 abstract class AppDatabase : RoomDatabase() {
     abstract fun noteDao(): NoteDao
 }
