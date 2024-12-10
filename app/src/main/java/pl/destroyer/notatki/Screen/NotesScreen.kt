@@ -18,6 +18,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.compose.NavHost
@@ -31,7 +32,7 @@ import pl.destroyer.notatki.dane.Note
 import pl.destroyer.notatki.data.AppDatabase
 import pl.destroyer.notatki.Components.NoteDetails
 import pl.destroyer.notatki.Components.NoteListScreen
-
+import pl.destroyer.notatki.R
 
 
 @Composable
@@ -40,7 +41,6 @@ fun NotesScreen(database: AppDatabase) {
     val notatki = remember { mutableStateListOf<Note>() }
     val scope = rememberCoroutineScope()
     var noteOrder by rememberSaveable { mutableStateOf<List<Int>>(emptyList()) }
-
     LaunchedEffect(Unit) {
         try {
             database.noteDao().getAllNotesOrdered().collect { savedNotes: List<Note> ->
@@ -157,7 +157,7 @@ fun NotesScreen(database: AppDatabase) {
                     )
                 }
             } else {
-                Text("Notatka nie została znaleziona")
+                Text(text = stringResource(id = R.string.note_not_found))
             }
         }
     }
@@ -173,6 +173,6 @@ fun Naglowek() {
             .height(80.dp)
             .statusBarsPadding()
     ) {
-        Text(text = "Witaj w notatniku!", color = Color.White, fontSize = 20.sp)
+        Text(text = stringResource(id = R.string.welcome), color = Color.White, fontSize = 20.sp)
     }
 }

@@ -16,7 +16,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import pl.destroyer.notatki.R
 import pl.destroyer.notatki.dane.Note
 
 
@@ -29,7 +31,7 @@ fun NoteDetails(note: Note, onSave: (String, String) -> Unit) {
         TextField(
             value = title.value,
             onValueChange = { title.value = it },
-            label = { Text("Tytuł") },
+            label = { Text(stringResource(id = R.string.title)) },
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(bottom = 8.dp)
@@ -39,7 +41,7 @@ fun NoteDetails(note: Note, onSave: (String, String) -> Unit) {
         TextField(
             value = content.value,
             onValueChange = { content.value = it },
-            label = { Text("Treść") },
+            label = { Text(stringResource(id = R.string.content)) },
             modifier = Modifier
                 .height(400.dp)
                 .fillMaxWidth()
@@ -56,7 +58,7 @@ fun NoteDetails(note: Note, onSave: (String, String) -> Unit) {
             ),
             modifier = Modifier.align(Alignment.End)
         ) {
-            Text("Zapisz", color = Color.White)
+            Text(stringResource(id = R.string.save), color = Color.White)
         }
     }
 }

@@ -22,10 +22,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import pl.destroyer.notatki.R
 import pl.destroyer.notatki.dane.Note
 import kotlin.math.abs
 
@@ -68,7 +70,7 @@ fun NoteListScreen(
                             .width(75.dp)
                             .height(75.dp)
                     ) {
-                        Text("+", fontSize = 30.sp)
+                        Text(stringResource(id = R.string.add_new_note), fontSize = 30.sp)
                     }
                 }
             }
@@ -161,9 +163,9 @@ fun NoteListScreen(
             }
 
         }
-        }
-
     }
+
+}
 
 
 private fun calculateDynamicTargetIndex(

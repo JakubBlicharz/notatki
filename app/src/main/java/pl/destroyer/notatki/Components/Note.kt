@@ -17,7 +17,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import pl.destroyer.notatki.R
 import pl.destroyer.notatki.dane.Note
 
 
@@ -49,7 +51,7 @@ fun Note(note: Note, onClick: () -> Unit, onDelete: () -> Unit) {
 
                 )
             ) {
-                Text("Usuń")
+                Text(stringResource(id = R.string.delete))
             }
         }
     }

@@ -1,3 +1,16 @@
 <resources>
     <string name="app_name">Notatki</string>
+    <string name="new_note">Nowa notatka</string>
+    <string name="note_not_found">Nie znaleziono notatki</string>">
+    <string name="welcome">Witaj w notatniku!</string>
+    <string name="add_new_note">+</string>
+    <string name="title">Tytuł</string>
+    <string name="add">Dodaj</string>
+    <string name="delete">Usuń</string>
+    <string name="content">Treść</string>
+    <string name="save">Zapisz</string>
+    <string name="language_label">Język</string>
+    <string name="polish">Polski</string>
+    <string name="english">Angielski</string>
+
 </resources>
