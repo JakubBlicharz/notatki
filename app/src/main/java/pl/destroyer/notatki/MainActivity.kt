@@ -6,14 +6,10 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.compose.foundation.layout.Column
 import androidx.compose.runtime.*
-import androidx.compose.ui.platform.LocalContext
-import pl.destroyer.notatki.Components.LanguageDropdownMenu
-import pl.destroyer.notatki.Screen.Naglowek
+import androidx.room.Room
 import pl.destroyer.notatki.Screen.NotesScreen
 import pl.destroyer.notatki.ui.theme.NotatkiTheme
-import androidx.room.Room
 import pl.destroyer.notatki.data.AppDatabase
 import java.util.Locale
 
@@ -38,6 +34,7 @@ class MainActivity : ComponentActivity() {
         fun setAppLanguage(language: String) {
             val locale = Locale(language)
             Locale.setDefault(locale)
+
             val config = Configuration(resources.configuration)
             config.setLocale(locale)
             resources.updateConfiguration(config, resources.displayMetrics)
@@ -45,6 +42,8 @@ class MainActivity : ComponentActivity() {
             sharedPreferences.edit().putString("language", language).apply()
 
             languageState = language
+
+            recreate()
         }
 
         enableEdgeToEdge()
@@ -52,20 +51,19 @@ class MainActivity : ComponentActivity() {
         setContent {
             NotatkiTheme {
                 CompositionLocalProvider {
-                    key(languageState) {
-                        AppContent(setAppLanguage = ::setAppLanguage)
-                    }
+                    AppContent(
+                        database = database,
+                        setAppLanguage = ::setAppLanguage
+                    )
                 }
             }
         }
-    }
 
-    @Composable
-    fun AppContent(setAppLanguage: (String) -> Unit) {
-        Column {
-            Naglowek()
-            LanguageDropdownMenu(setAppLanguage = setAppLanguage)
-            NotesScreen(database = database)
-        }
-    }
+
+
+}
+@Composable
+fun AppContent(database: AppDatabase, setAppLanguage: (String) -> Unit) {
+    NotesScreen(database = database, setAppLanguage = setAppLanguage)
+}
 }

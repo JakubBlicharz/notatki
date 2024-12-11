@@ -12,5 +12,5 @@
     <string name="language_label">Język</string>
     <string name="polish">Polski</string>
     <string name="english">Angielski</string>
-
+    <string name="choose_language">Wybierz Język</string>
 </resources>

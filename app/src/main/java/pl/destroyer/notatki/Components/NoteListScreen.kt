@@ -41,7 +41,8 @@ fun NoteListScreen(
     onAddNote: () -> Unit,
     onDeleteNote: (Note) -> Unit,
     onNoteReorder: (List<Int>) -> Unit,
-    noteOrder: List<Int>
+    noteOrder: List<Int>,
+    setAppLanguage: (String) -> Unit
 ) {
     val lazyListState = rememberLazyListState()
     val coroutineScope = rememberCoroutineScope()

@@ -13,4 +13,6 @@
     <string name="language_label">Language</string>
     <string name="polish">Polish</string>
     <string name="english">English</string>
+    <string name="choose_language">Chose Language</string>
+
 </resources>

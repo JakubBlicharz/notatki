@@ -1,22 +1,16 @@
 package pl.destroyer.notatki.Screen
+
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.statusBarsPadding
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateListOf
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
+import androidx.compose.foundation.border
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Menu
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
@@ -28,151 +22,165 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import pl.destroyer.notatki.dane.Note
-import pl.destroyer.notatki.data.AppDatabase
+import pl.destroyer.notatki.Components.LanguageDropdownMenu
 import pl.destroyer.notatki.Components.NoteDetails
 import pl.destroyer.notatki.Components.NoteListScreen
 import pl.destroyer.notatki.R
-
+import pl.destroyer.notatki.data.AppDatabase
+import pl.destroyer.notatki.dane.Note
 
 @Composable
-fun NotesScreen(database: AppDatabase) {
+fun NotesScreen(database: AppDatabase, setAppLanguage: (String) -> Unit) {
     val navController = rememberNavController()
     val notatki = remember { mutableStateListOf<Note>() }
     val scope = rememberCoroutineScope()
-    var noteOrder by rememberSaveable { mutableStateOf<List<Int>>(emptyList()) }
+    var noteOrder by remember { mutableStateOf<List<Int>>(emptyList()) }
+    val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
+
+    fun openDrawer() {
+        scope.launch { drawerState.open() }
+    }
+
     LaunchedEffect(Unit) {
-        try {
-            database.noteDao().getAllNotesOrdered().collect { savedNotes: List<Note> ->
-                notatki.clear()
-                notatki.addAll(savedNotes)
-                noteOrder = savedNotes.map { it.id }
-            }
-        } catch (e: Exception) {
-            e.printStackTrace()
+        database.noteDao().getAllNotesOrdered().collect { savedNotes ->
+            notatki.clear()
+            notatki.addAll(savedNotes)
+            noteOrder = savedNotes.map { it.id }
         }
     }
 
-    NavHost(navController, startDestination = "noteList") {
-        composable("noteList") {
-            NoteListScreen(
-                notatki = notatki,
-                onNoteClick = { noteId ->
-                    navController.navigate("noteDetail/$noteId")
-                },
-                onAddNote = {
-                    println("Przycisk dodania notatki kliknięty")
-                    scope.launch {
-                        println("Rozpoczynam dodawanie nowej notatki...")
-                        scope.launch(Dispatchers.IO) {
-                            try {
+    ModalNavigationDrawer(
+        drawerState = drawerState,
+        gesturesEnabled = true,
+        drawerContent = {
+            Column(modifier = Modifier
+                .padding(top = 50.dp, bottom = 50.dp)
+                .fillMaxHeight()
+                .width(200.dp)
+                .background(Color.Black.copy(alpha = 0.9f), RoundedCornerShape(12.dp))
+                .border(1.dp, Color.Gray, RoundedCornerShape(12.dp))
+                .padding(16.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
+            ) {
+                Text(
+
+                    text = stringResource(R.string.choose_language),
+                    style = MaterialTheme.typography.titleLarge,
+                    color = Color.White
+                )
+                Spacer(modifier = Modifier.height(32.dp))
+                LanguageDropdownMenu(setAppLanguage = setAppLanguage)
+            }
+        }
+    ) {
+        Scaffold(
+            topBar = { Naglowek(onMenuClick = { openDrawer() }) }
+        ) { paddingValues ->
+            NavHost(
+                navController = navController,
+                startDestination = "noteList",
+                modifier = Modifier.padding(paddingValues)
+            ) {
+                composable("noteList") {
+                    NoteListScreen(
+                        notatki = notatki,
+                        onNoteClick = { noteId -> navController.navigate("noteDetail/$noteId") },
+                        onAddNote = {
+                            scope.launch(Dispatchers.IO) {
                                 val maxOrder = database.noteDao().getAllNotesOrdered()
                                     .firstOrNull()?.maxByOrNull { it.order }?.order ?: 0
-
                                 val newNote = Note(
                                     title = "Nowa notatka",
                                     content = "",
                                     order = maxOrder + 1
                                 )
-
                                 val id = database.noteDao().insertNote(newNote)
-                                println("Nowa notatka dodana z ID: $id")
-
                                 withContext(Dispatchers.Main) {
                                     notatki.add(newNote.copy(id = id.toInt()))
                                     noteOrder = noteOrder + id.toInt()
-                                    println("Nowa notatka została dodana do UI")
                                 }
-                            } catch (e: Exception) {
-                                e.printStackTrace()
-                                println("Błąd przy dodawaniu notatki: ${e.message}")
                             }
-                        }
-                    }
-                }
-                ,
-                onDeleteNote = { note ->
-                    scope.launch {
-                        scope.launch(Dispatchers.IO) {
-                            try {
+                        },
+                        onDeleteNote = { note ->
+                            scope.launch(Dispatchers.IO) {
                                 database.noteDao().deleteNote(note)
-                                notatki.remove(note)
-                                noteOrder = noteOrder.filter { it != note.id }
-                            } catch (e: Exception) {
-                                e.printStackTrace()
+                                withContext(Dispatchers.Main) {
+                                    notatki.remove(note)
+                                    noteOrder = noteOrder.filter { it != note.id }
+                                }
                             }
-                        }
-                    }
-                },
-                onNoteReorder = { newOrder ->
-                    scope.launch(Dispatchers.IO) {
-                        newOrder.forEachIndexed { index, noteId ->
-                            val note = notatki.find { it.id == noteId }
-                            if (note != null) {
-                                note.order = index
-                                database.noteDao().updateNote(note)
-                            }
-                        }
-                        withContext(Dispatchers.Main) {
-                            notatki.sortBy { it.order }
-                            noteOrder = newOrder
-                        }
-                    }
-                    println("Zapisano nową kolejność w bazie: $newOrder")
-                }
-                ,
-                noteOrder = noteOrder
-            )
-        }
-        composable("noteDetail/{noteId}") { backStackEntry ->
-            val noteId = backStackEntry.arguments?.getString("noteId")?.toIntOrNull()
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .background(Color(0xFFAB81CD))
-            )
-            if (noteId != null) {
-                val note = notatki.find { it.id == noteId }
-                if (note != null) {
-                    NoteDetails(
-                        note = note,
-                        onSave = { updatedTitle, updatedContent ->
-                            scope.launch {
-                                scope.launch(Dispatchers.IO) {
-                                    try {
-                                        val updatedNote =
-                                            note.copy(title = updatedTitle, content = updatedContent)
-                                        database.noteDao().insertNote(updatedNote)
-                                        withContext(Dispatchers.Main) {
-                                            val index = notatki.indexOf(note)
-                                            notatki[index] = updatedNote
-                                            navController.navigate("noteList")
-                                        }
-                                    } catch (e: Exception) {
-                                        e.printStackTrace()
+                        },
+                        onNoteReorder = { newOrder ->
+                            scope.launch(Dispatchers.IO) {
+                                newOrder.forEachIndexed { index, noteId ->
+                                    val note = notatki.find { it.id == noteId }
+                                    if (note != null) {
+                                        note.order = index
+                                        database.noteDao().updateNote(note)
                                     }
                                 }
+                                withContext(Dispatchers.Main) {
+                                    notatki.sortBy { it.order }
+                                    noteOrder = newOrder
+                                }
                             }
-                        }
+                        },
+                        noteOrder = noteOrder,
+                        setAppLanguage = setAppLanguage
                     )
                 }
-            } else {
-                Text(text = stringResource(id = R.string.note_not_found))
+                composable("noteDetail/{noteId}") { backStackEntry ->
+                    val noteId = backStackEntry.arguments?.getString("noteId")?.toIntOrNull()
+                    noteId?.let { id ->
+                        val note = notatki.find { it.id == id }
+                        note?.let {
+                            NoteDetails(note = it, onSave = { updatedTitle, updatedContent ->
+                                scope.launch {
+                                    database.noteDao().updateNote(it.copy(title = updatedTitle, content = updatedContent))
+                                    withContext(Dispatchers.Main) {
+                                        navController.popBackStack()
+                                    }
+                                }
+                            })
+                        }
+                    }
+                }
             }
         }
     }
 }
 
+
 @Composable
-fun Naglowek() {
+fun Naglowek(onMenuClick: () -> Unit) {
     Box(
-        contentAlignment = Alignment.Center,
         modifier = Modifier
             .background(color = Color(0xFF222A68))
             .fillMaxWidth()
-            .height(80.dp)
+            .height(100.dp)
             .statusBarsPadding()
+            .padding(16.dp)
     ) {
-        Text(text = stringResource(id = R.string.welcome), color = Color.White, fontSize = 20.sp)
+        Row(
+            modifier = Modifier.align(Alignment.CenterStart),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.Start
+        ) {
+            IconButton(onClick = onMenuClick) {
+                Icon(
+                    imageVector = Icons.Default.Menu,
+                    contentDescription = "Menu",
+                    tint = Color.White
+                )
+            }
+            Spacer(modifier = Modifier.width(8.dp))
+            Text(
+                text = stringResource(R.string.welcome),
+                color = Color.White,
+                fontSize = 20.sp
+            )
+        }
     }
 }
+
