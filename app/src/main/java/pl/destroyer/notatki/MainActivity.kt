@@ -7,6 +7,7 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.runtime.*
+import androidx.compose.ui.platform.LocalContext
 import androidx.room.Room
 import pl.destroyer.notatki.Screen.NotesScreen
 import pl.destroyer.notatki.ui.theme.NotatkiTheme
@@ -17,8 +18,29 @@ import java.util.Locale
 class MainActivity : ComponentActivity() {
     private lateinit var database: AppDatabase
 
+    private val sharedPreferences by lazy {
+        getSharedPreferences("app_prefs", Context.MODE_PRIVATE)
+    }
+
+    private val languageState = mutableStateOf("pl")
+
+    private fun setAppLanguage(language: String) {
+        val locale = Locale(language)
+        Locale.setDefault(locale)
+
+        val config = Configuration(resources.configuration)
+        config.setLocale(locale)
+        resources.updateConfiguration(config, resources.displayMetrics)
+
+        sharedPreferences.edit().putString("language", language).apply()
+        languageState.value = language
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        val savedLanguage = sharedPreferences.getString("language", "pl") ?: "pl"
+        setAppLanguage(savedLanguage)
 
         database = Room.databaseBuilder(
             applicationContext,
@@ -26,31 +48,20 @@ class MainActivity : ComponentActivity() {
             "notes_database"
         ).fallbackToDestructiveMigration().build()
 
-        val sharedPreferences = getSharedPreferences("app_prefs", Context.MODE_PRIVATE)
-        val savedLanguage = sharedPreferences.getString("language", "pl") ?: "pl"
-
-        var languageState by mutableStateOf(savedLanguage)
-
-        fun setAppLanguage(language: String) {
-            val locale = Locale(language)
-            Locale.setDefault(locale)
-
-            val config = Configuration(resources.configuration)
-            config.setLocale(locale)
-            resources.updateConfiguration(config, resources.displayMetrics)
-
-            sharedPreferences.edit().putString("language", language).apply()
-
-            languageState = language
-
-            recreate()
-        }
-
         enableEdgeToEdge()
 
         setContent {
+            val currentLanguage by languageState
+
             NotatkiTheme {
-                CompositionLocalProvider {
+                CompositionLocalProvider(
+
+                    LocalContext provides applicationContext.createConfigurationContext(
+                        Configuration(resources.configuration).apply {
+                            setLocale(Locale(currentLanguage))
+                        }
+                    )
+                ) {
                     AppContent(
                         database = database,
                         setAppLanguage = ::setAppLanguage
@@ -58,12 +69,11 @@ class MainActivity : ComponentActivity() {
                 }
             }
         }
-
-
-
+    }
 }
+
+
 @Composable
 fun AppContent(database: AppDatabase, setAppLanguage: (String) -> Unit) {
     NotesScreen(database = database, setAppLanguage = setAppLanguage)
-}
 }

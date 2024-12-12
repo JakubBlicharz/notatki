@@ -10,7 +10,6 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
@@ -70,7 +69,7 @@ fun NotesScreen(database: AppDatabase, setAppLanguage: (String) -> Unit) {
                     color = Color.White
                 )
                 Spacer(modifier = Modifier.height(32.dp))
-                LanguageDropdownMenu(setAppLanguage = setAppLanguage)
+                LanguageDropdownMenu(setAppLanguage = setAppLanguage, drawerState = drawerState)
             }
         }
     ) {
@@ -101,6 +100,9 @@ fun NotesScreen(database: AppDatabase, setAppLanguage: (String) -> Unit) {
                                 withContext(Dispatchers.Main) {
                                     notatki.add(addedNote)
                                     noteOrder = notatki.map { it.id }
+
+                                    navController.navigate("noteDetail/${addedNote.id}")
+
                                 }
                             }
                         },
