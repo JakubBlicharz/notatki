@@ -41,7 +41,7 @@ fun NotesScreen(database: AppDatabase, setAppLanguage: (String) -> Unit) {
         scope.launch { drawerState.open() }
     }
 
-    LaunchedEffect(Unit) {
+    LaunchedEffect(notatki.size) {
         database.noteDao().getAllNotesOrdered().collect { savedNotes ->
             notatki.clear()
             notatki.addAll(savedNotes)
@@ -96,9 +96,11 @@ fun NotesScreen(database: AppDatabase, setAppLanguage: (String) -> Unit) {
                                     order = maxOrder + 1
                                 )
                                 val id = database.noteDao().insertNote(newNote)
+                                val addedNote = newNote.copy(id = id.toInt())
+
                                 withContext(Dispatchers.Main) {
-                                    notatki.add(newNote.copy(id = id.toInt()))
-                                    noteOrder = noteOrder + id.toInt()
+                                    notatki.add(addedNote)
+                                    noteOrder = notatki.map { it.id }
                                 }
                             }
                         },
@@ -136,9 +138,16 @@ fun NotesScreen(database: AppDatabase, setAppLanguage: (String) -> Unit) {
                         val note = notatki.find { it.id == id }
                         note?.let {
                             NoteDetails(note = it, onSave = { updatedTitle, updatedContent ->
-                                scope.launch {
+                                scope.launch(Dispatchers.IO) {
                                     database.noteDao().updateNote(it.copy(title = updatedTitle, content = updatedContent))
+                                    val updatedNotes = database.noteDao().getAllNotesOrdered().firstOrNull()
+
                                     withContext(Dispatchers.Main) {
+                                        updatedNotes?.let { notes ->
+                                            notatki.clear()
+                                            notatki.addAll(notes)
+                                            noteOrder = notes.map { it.id }
+                                        }
                                         navController.popBackStack()
                                     }
                                 }
