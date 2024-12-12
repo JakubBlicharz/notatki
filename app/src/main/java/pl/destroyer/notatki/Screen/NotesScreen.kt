@@ -129,9 +129,7 @@ fun NotesScreen(database: AppDatabase, setAppLanguage: (String) -> Unit) {
                                     noteOrder = newOrder
                                 }
                             }
-                        },
-                        noteOrder = noteOrder,
-                        setAppLanguage = setAppLanguage
+                        }
                     )
                 }
                 composable("noteDetail/{noteId}") { backStackEntry ->
