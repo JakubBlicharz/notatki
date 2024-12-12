@@ -1,4 +1,4 @@
-package pl.destroyer.notatki.Screen
+package pl.destroyer.notation.Screen
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -11,6 +11,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -21,18 +22,19 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import pl.destroyer.notation.R
+import pl.destroyer.notation.data.AppDatabase
+import pl.destroyer.notation.extr_data.Note
 import pl.destroyer.notatki.Components.LanguageDropdownMenu
 import pl.destroyer.notatki.Components.NoteDetails
 import pl.destroyer.notatki.Components.NoteListScreen
-import pl.destroyer.notatki.R
-import pl.destroyer.notatki.data.AppDatabase
-import pl.destroyer.notatki.dane.Note
 
 @Composable
 fun NotesScreen(database: AppDatabase, setAppLanguage: (String) -> Unit) {
     val navController = rememberNavController()
-    val notatki = remember { mutableStateListOf<Note>() }
+    val notation = remember { mutableStateListOf<Note>() }
     val scope = rememberCoroutineScope()
+    val context = LocalContext.current
     var noteOrder by remember { mutableStateOf<List<Int>>(emptyList()) }
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
 
@@ -40,10 +42,10 @@ fun NotesScreen(database: AppDatabase, setAppLanguage: (String) -> Unit) {
         scope.launch { drawerState.open() }
     }
 
-    LaunchedEffect(notatki.size) {
+    LaunchedEffect(database) {
         database.noteDao().getAllNotesOrdered().collect { savedNotes ->
-            notatki.clear()
-            notatki.addAll(savedNotes)
+            notation.clear()
+            notation.addAll(savedNotes)
             noteOrder = savedNotes.map { it.id }
         }
     }
@@ -52,18 +54,18 @@ fun NotesScreen(database: AppDatabase, setAppLanguage: (String) -> Unit) {
         drawerState = drawerState,
         gesturesEnabled = true,
         drawerContent = {
-            Column(modifier = Modifier
-                .padding(top = 50.dp, bottom = 50.dp)
-                .fillMaxHeight()
-                .width(200.dp)
-                .background(Color.Black.copy(alpha = 0.9f), RoundedCornerShape(12.dp))
-                .border(1.dp, Color.Gray, RoundedCornerShape(12.dp))
-                .padding(16.dp),
+            Column(
+                modifier = Modifier
+                    .padding(top = 50.dp, bottom = 50.dp)
+                    .fillMaxHeight()
+                    .width(200.dp)
+                    .background(Color.Black.copy(alpha = 0.9f), RoundedCornerShape(12.dp))
+                    .border(1.dp, Color.Gray, RoundedCornerShape(12.dp))
+                    .padding(16.dp),
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center
             ) {
                 Text(
-
                     text = stringResource(R.string.choose_language),
                     style = MaterialTheme.typography.titleLarge,
                     color = Color.White
@@ -74,7 +76,7 @@ fun NotesScreen(database: AppDatabase, setAppLanguage: (String) -> Unit) {
         }
     ) {
         Scaffold(
-            topBar = { Naglowek(onMenuClick = { openDrawer() }) }
+            topBar = { Headline(onMenuClick = { openDrawer() }) }
         ) { paddingValues ->
             NavHost(
                 navController = navController,
@@ -83,14 +85,14 @@ fun NotesScreen(database: AppDatabase, setAppLanguage: (String) -> Unit) {
             ) {
                 composable("noteList") {
                     NoteListScreen(
-                        notatki = notatki,
+                        notation = notation,
                         onNoteClick = { noteId -> navController.navigate("noteDetail/$noteId") },
                         onAddNote = {
                             scope.launch(Dispatchers.IO) {
                                 val maxOrder = database.noteDao().getAllNotesOrdered()
                                     .firstOrNull()?.maxByOrNull { it.order }?.order ?: 0
                                 val newNote = Note(
-                                    title = "Nowa notatka",
+                                    title = context.getString(R.string.new_note),
                                     content = "",
                                     order = maxOrder + 1
                                 )
@@ -98,11 +100,9 @@ fun NotesScreen(database: AppDatabase, setAppLanguage: (String) -> Unit) {
                                 val addedNote = newNote.copy(id = id.toInt())
 
                                 withContext(Dispatchers.Main) {
-                                    notatki.add(addedNote)
-                                    noteOrder = notatki.map { it.id }
-
+                                    notation.add(addedNote)
+                                    noteOrder = notation.map { it.id }
                                     navController.navigate("noteDetail/${addedNote.id}")
-
                                 }
                             }
                         },
@@ -110,7 +110,7 @@ fun NotesScreen(database: AppDatabase, setAppLanguage: (String) -> Unit) {
                             scope.launch(Dispatchers.IO) {
                                 database.noteDao().deleteNote(note)
                                 withContext(Dispatchers.Main) {
-                                    notatki.remove(note)
+                                    notation.remove(note)
                                     noteOrder = noteOrder.filter { it != note.id }
                                 }
                             }
@@ -118,14 +118,14 @@ fun NotesScreen(database: AppDatabase, setAppLanguage: (String) -> Unit) {
                         onNoteReorder = { newOrder ->
                             scope.launch(Dispatchers.IO) {
                                 newOrder.forEachIndexed { index, noteId ->
-                                    val note = notatki.find { it.id == noteId }
+                                    val note = notation.find { it.id == noteId }
                                     if (note != null) {
                                         note.order = index
                                         database.noteDao().updateNote(note)
                                     }
                                 }
                                 withContext(Dispatchers.Main) {
-                                    notatki.sortBy { it.order }
+                                    notation.sortBy { it.order }
                                     noteOrder = newOrder
                                 }
                             }
@@ -135,18 +135,15 @@ fun NotesScreen(database: AppDatabase, setAppLanguage: (String) -> Unit) {
                 composable("noteDetail/{noteId}") { backStackEntry ->
                     val noteId = backStackEntry.arguments?.getString("noteId")?.toIntOrNull()
                     noteId?.let { id ->
-                        val note = notatki.find { it.id == id }
+                        val note = notation.find { it.id == id }
                         note?.let {
                             NoteDetails(note = it, onSave = { updatedTitle, updatedContent ->
                                 scope.launch(Dispatchers.IO) {
                                     database.noteDao().updateNote(it.copy(title = updatedTitle, content = updatedContent))
-                                    val updatedNotes = database.noteDao().getAllNotesOrdered().firstOrNull()
-
                                     withContext(Dispatchers.Main) {
-                                        updatedNotes?.let { notes ->
-                                            notatki.clear()
-                                            notatki.addAll(notes)
-                                            noteOrder = notes.map { it.id }
+                                        val index = notation.indexOfFirst { n -> n.id == id }
+                                        if (index != -1) {
+                                            notation[index] = it.copy(title = updatedTitle, content = updatedContent)
                                         }
                                         navController.popBackStack()
                                     }
@@ -162,7 +159,7 @@ fun NotesScreen(database: AppDatabase, setAppLanguage: (String) -> Unit) {
 
 
 @Composable
-fun Naglowek(onMenuClick: () -> Unit) {
+fun Headline(onMenuClick: () -> Unit) {
     Box(
         modifier = Modifier
             .background(color = Color(0xFF222A68))

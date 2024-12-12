@@ -10,7 +10,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -19,8 +19,9 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import pl.destroyer.notatki.R
-import pl.destroyer.notatki.dane.Note
+import pl.destroyer.notation.R
+import pl.destroyer.notation.extr_data.Note
+import pl.destroyer.notation.ui.theme.defaultButtonColors
 
 
 @Composable
@@ -45,11 +46,7 @@ fun Note(note: Note, onClick: () -> Unit, onDelete: () -> Unit) {
             Button(
                 onClick = onDelete,
                 modifier = Modifier.align(Alignment.End),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = Color(0xFF452971),
-                    contentColor = Color.White
-
-                )
+                colors = MaterialTheme.defaultButtonColors
             ) {
                 Text(stringResource(id = R.string.delete))
             }

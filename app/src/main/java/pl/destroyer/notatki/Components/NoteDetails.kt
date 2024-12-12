@@ -6,7 +6,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
@@ -18,8 +18,9 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import pl.destroyer.notatki.R
-import pl.destroyer.notatki.dane.Note
+import pl.destroyer.notation.R
+import pl.destroyer.notation.extr_data.Note
+import pl.destroyer.notation.ui.theme.defaultButtonColors
 
 
 @Composable
@@ -47,15 +48,10 @@ fun NoteDetails(note: Note, onSave: (String, String) -> Unit) {
                 .fillMaxWidth()
                 .padding(bottom = 8.dp)
                 .clip(RoundedCornerShape(16.dp)),
-            maxLines = Int.MAX_VALUE,
-            singleLine = false
         )
         Button(
             onClick = { onSave(title.value, content.value) },
-            colors = ButtonDefaults.buttonColors(
-                containerColor = Color(0xFF452971),
-                contentColor = Color.White
-            ),
+            colors = MaterialTheme.defaultButtonColors,
             modifier = Modifier.align(Alignment.End)
         ) {
             Text(stringResource(id = R.string.save), color = Color.White)

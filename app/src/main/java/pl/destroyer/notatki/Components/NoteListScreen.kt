@@ -21,16 +21,18 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
-import pl.destroyer.notatki.dane.Note
+import pl.destroyer.notation.R
+import pl.destroyer.notation.extr_data.Note
 import kotlin.math.abs
 
 
 
 @Composable
 fun NoteListScreen(
-    notatki: MutableList<Note>,
+    notation: MutableList<Note>,
     onNoteClick: (Int) -> Unit,
     onAddNote: () -> Unit,
     onDeleteNote: (Note) -> Unit,
@@ -39,7 +41,7 @@ fun NoteListScreen(
     val lazyListState = rememberLazyListState()
     val coroutineScope = rememberCoroutineScope()
     var draggedNoteId by remember { mutableStateOf<Int?>(null) }
-    var offsetY by remember { mutableStateOf(0f) }
+    var offsetY by remember { mutableFloatStateOf(0f) }
     var isDragging by remember { mutableStateOf(false) }
 
 
@@ -64,7 +66,7 @@ fun NoteListScreen(
                     ) {
                         Icon(
                             imageVector = Icons.Default.Add,
-                            contentDescription = "Add Note",
+                            contentDescription = stringResource(id = R.string.add_note),
                             tint = Color.White
                         )
                     }
@@ -80,9 +82,9 @@ fun NoteListScreen(
                 contentPadding = PaddingValues(16.dp)
             ) {
                 itemsIndexed(
-                    items = notatki,
+                    items = notation,
                     key = { _, note -> note.id }
-                ) { index, note ->
+                ) { _, note ->
                     val animatedOffset by animateFloatAsState(if (draggedNoteId == note.id) offsetY else 0f)
 
                     Box(
@@ -104,20 +106,20 @@ fun NoteListScreen(
                                         change.consume()
                                         offsetY += dragAmount.y
 
-                                        val draggedIndex = notatki.indexOfFirst { it.id == draggedNoteId }
+                                        val draggedIndex = notation.indexOfFirst { it.id == draggedNoteId }
                                         val targetIndexCalculated = calculateDynamicTargetIndex(
-                                            lazyListState, draggedIndex, offsetY, notatki
+                                            lazyListState, draggedIndex, offsetY, notation
                                         )
 
                                         if (targetIndexCalculated != draggedIndex && abs(targetIndexCalculated - draggedIndex) == 1) {
                                             coroutineScope.launch {
-                                                val newList = notatki.toMutableList()
+                                                val newList = notation.toMutableList()
                                                 val noteToMove = newList.removeAt(draggedIndex)
                                                 newList.add(targetIndexCalculated, noteToMove)
 
                                                 newList.forEachIndexed { i, n -> n.order = i }
-                                                notatki.clear()
-                                                notatki.addAll(newList)
+                                                notation.clear()
+                                                notation.addAll(newList)
                                                 onNoteReorder(newList.map { it.id })
                                                 offsetY = 0f
                                             }

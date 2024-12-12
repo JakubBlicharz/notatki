@@ -1,4 +1,4 @@
-package pl.destroyer.notatki.ui.theme
+package pl.destroyer.notation.ui.theme
 
 import androidx.compose.material3.Typography
 import androidx.compose.ui.text.TextStyle

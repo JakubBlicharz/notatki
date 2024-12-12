@@ -3,16 +3,17 @@ package pl.destroyer.notatki.Components
 import android.content.Context
 import androidx.compose.foundation.layout.Column
 import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.DrawerState
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
-import androidx.compose.ui.graphics.Color
+import pl.destroyer.notation.R
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import kotlinx.coroutines.launch
-import pl.destroyer.notatki.R
+import pl.destroyer.notation.ui.theme.defaultButtonColors
 
 @Composable
 fun LanguageDropdownMenu(setAppLanguage: (String) -> Unit, drawerState: DrawerState) {
@@ -24,13 +25,11 @@ fun LanguageDropdownMenu(setAppLanguage: (String) -> Unit, drawerState: DrawerSt
     var selectedLanguage by remember { mutableStateOf(sharedPreferences.getString("language", "pl")!!) }
 
     Column {
-        Button(onClick = { expanded = true }, colors = ButtonDefaults.buttonColors(
-            containerColor = Color(0xFF452971),
-            contentColor = Color.White)) {
+        Button(onClick = { expanded = true }, colors = MaterialTheme.defaultButtonColors) {
             Text(
-                "${context.getString(R.string.language_label)}: ${
-                    if (selectedLanguage == "pl") context.getString(R.string.polish)
-                    else context.getString(R.string.english)
+                text = "${stringResource(R.string.language_label)}: ${
+                    if (selectedLanguage == "pl") stringResource(R.string.polish)
+                    else stringResource(R.string.english)
                 }"
             )
         }
@@ -40,7 +39,7 @@ fun LanguageDropdownMenu(setAppLanguage: (String) -> Unit, drawerState: DrawerSt
             onDismissRequest = { expanded = false }
         ) {
             DropdownMenuItem(
-                text = { Text(context.getString(R.string.polish)) },
+                text = { Text(stringResource(id = R.string.polish)) },
                 onClick = {
                     selectedLanguage = "pl"
                     setAppLanguage("pl")
@@ -49,7 +48,7 @@ fun LanguageDropdownMenu(setAppLanguage: (String) -> Unit, drawerState: DrawerSt
                 }
             )
             DropdownMenuItem(
-                text = { Text(context.getString(R.string.english)) },
+                text = { Text(stringResource(id = R.string.english)) },
                 onClick = {
                     selectedLanguage = "en"
                     setAppLanguage("en")

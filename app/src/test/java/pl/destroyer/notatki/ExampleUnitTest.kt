@@ -1,4 +1,4 @@
-package pl.destroyer.notatki
+package pl.destroyer.notation
 
 import org.junit.Test
 

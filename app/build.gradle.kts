@@ -5,11 +5,11 @@ plugins {
 }
 
 android {
-    namespace = "pl.destroyer.notatki"
+    namespace = "pl.destroyer.notation"
     compileSdk = 35
 
     defaultConfig {
-        applicationId = "pl.destroyer.notatki"
+        applicationId = "pl.destroyer.notation"
         minSdk = 24
         targetSdk = 35
         versionCode = 1

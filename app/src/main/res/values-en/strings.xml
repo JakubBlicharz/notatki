@@ -14,5 +14,5 @@
     <string name="polish">Polish</string>
     <string name="english">English</string>
     <string name="choose_language">Chose Language</string>
-
+    <string name="add_note">Add Note</string>
 </resources>

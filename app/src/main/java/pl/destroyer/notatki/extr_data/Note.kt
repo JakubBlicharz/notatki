@@ -1,4 +1,4 @@
-package pl.destroyer.notatki.dane
+package pl.destroyer.notation.extr_data
 
 import androidx.room.Entity
 import androidx.room.PrimaryKey

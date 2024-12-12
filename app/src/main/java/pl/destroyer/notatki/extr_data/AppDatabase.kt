@@ -1,9 +1,9 @@
-package pl.destroyer.notatki.data
+package pl.destroyer.notation.data
 
 import androidx.room.Database
 import androidx.room.RoomDatabase
-import pl.destroyer.notatki.dane.Note
-import pl.destroyer.notatki.dane.NoteDao
+import pl.destroyer.notation.extr_data.Note
+import pl.destroyer.notation.extr_data.NoteDao
 
 
 @Database(entities = [Note::class], version = 2,exportSchema = true)

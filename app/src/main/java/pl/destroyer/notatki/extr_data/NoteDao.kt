@@ -1,4 +1,4 @@
-package pl.destroyer.notatki.dane
+package pl.destroyer.notation.extr_data
 
 import androidx.room.Dao
 import androidx.room.Delete

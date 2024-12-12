@@ -1,4 +1,4 @@
-package pl.destroyer.notatki
+package pl.destroyer.notation
 
 import android.content.Context
 import android.content.res.Configuration
@@ -9,9 +9,9 @@ import androidx.activity.enableEdgeToEdge
 import androidx.compose.runtime.*
 import androidx.compose.ui.platform.LocalContext
 import androidx.room.Room
-import pl.destroyer.notatki.Screen.NotesScreen
-import pl.destroyer.notatki.ui.theme.NotatkiTheme
-import pl.destroyer.notatki.data.AppDatabase
+import pl.destroyer.notation.Screen.NotesScreen
+import pl.destroyer.notation.ui.theme.notationTheme
+import pl.destroyer.notation.data.AppDatabase
 import java.util.Locale
 
 @Suppress("DEPRECATION")
@@ -53,7 +53,7 @@ class MainActivity : ComponentActivity() {
         setContent {
             val currentLanguage by languageState
 
-            NotatkiTheme {
+            notationTheme {
                 CompositionLocalProvider(
 
                     LocalContext provides applicationContext.createConfigurationContext(
